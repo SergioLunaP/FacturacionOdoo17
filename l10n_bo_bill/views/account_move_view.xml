@@ -1,0 +1,77 @@
+<odoo>
+    <record id="view_move_form_envio_impuestos_button" model="ir.ui.view">
+        <field name="name">account.move.form.envio.impuestos.button</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <!-- Cinta "Cancelada" en rojo -->
+                <div class="ribbon ribbon-danger" modifiers="{'invisible': [('factura_cancelada', '=', False)]}">
+                </div>
+                <div class="ribbon ribbon-warning" modifiers="{'invisible': [('contingencia', '=', False)]}">
+                </div>
+                
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath> 
+            <header>
+                <button name="action_envio_a_impuestos_y_confirmar" type="object" string="Envio a Impuestos" class="btn-primary"
+                    invisible="state != 'draft'"/>
+                <button name="%(action_anulacion_wizard)d" type="action" string="Anular Factura" class="btn-secondary"
+                    invisible="state != 'posted' or contingencia"/>
+
+                <button name="action_mostrar_wizard_contingencia" type="object" 
+                    invisible="state != 'draft'" string="Activar Contingencia" class="btn-primary" />
+
+                <button name="finalizar_contingencia" type="object" 
+                    invisible="state != 'draft'" string="Finalizar Contingencia" class="btn-primary" />
+
+                <button name="abrir_url" type="object" string="Ver en Impuestos" class="btn-primary"
+                    invisible="state != 'posted'"/>
+            </header>
+            <xpath expr="//button[@name='action_post']" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_reference']" position="after">
+                <field name="payment_type_id"/>
+            </xpath>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Información Factura">
+                    <group>
+                        <field name="codigo_estado"/>
+                        <field name="cuf"/>
+                        <field name="numero_factura"/>
+                        <field name="url"/>
+                        <field name="contingencia" invisible="1"/>
+
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_move_form_download_pdf_button" model="ir.ui.view">
+        <field name="name">account.move.form.download.pdf.button</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                    <!-- Botón para descargar el PDF -->
+                    <button name="action_download_invoice_pdf_true" type="object" string="Descargar PDF" class="btn-primary"
+                        invisible="state != 'posted'"/>
+                </xpath>
+        </field>
+    </record>
+    <record id="view_invoice_form_custom" model="ir.ui.view">
+        <field name="name">account.move.custom.preview.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <header>
+                <button name="action_invoice_preview" type="object" string="Vista previa" class="btn-primary" invisible="state != 'posted'"/>
+            </header>
+        </field>
+    </record>
+
+</odoo>

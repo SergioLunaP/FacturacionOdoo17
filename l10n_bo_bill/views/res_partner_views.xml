@@ -1,0 +1,29 @@
+<odoo>
+    <!-- Definición de la vista heredada -->
+    <record id="view_partner_form_inherit_api" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="complemento"/>
+                <field name="codigo_cliente"/>
+            </xpath>
+
+            <xpath expr="//field[@name='vat']" position="attributes">
+                <attribute name="required">True</attribute>
+            </xpath>
+             <xpath expr="//field[@name='email']" position="attributes">
+                <attribute name="required">True</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="action_obtener_clientes_desde_api" model="ir.actions.server">
+        <field name="name">Obtener Clientes desde la API</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">model.obtener_clientes_desde_api()</field>
+    </record>
+</odoo>

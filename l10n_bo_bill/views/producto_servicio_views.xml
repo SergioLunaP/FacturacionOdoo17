@@ -1,0 +1,52 @@
+<odoo>
+    <!-- Acción para Productos y Servicios -->
+    <record id="action_producto_servicio" model="ir.actions.act_window">
+        <field name="name">Productos y Servicios</field>
+        <field name="res_model">l10n_bo_bill.producto_servicio</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>Gestiona los productos y servicios para la facturación.</p>
+        </field>
+    </record>
+    
+    <!-- Vista en árbol para Productos y Servicios -->
+    <record id="view_producto_servicio_tree" model="ir.ui.view">
+        <field name="name">producto.servicio.tree</field>
+        <field name="model">l10n_bo_bill.producto_servicio</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="codigo_actividad"/>
+                <field name="codigo_producto"/>
+                <field name="descripcion_producto"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista en formulario para Productos y Servicios -->
+    <record id="view_producto_servicio_form" model="ir.ui.view">
+        <field name="name">producto.servicio.form</field>
+        <field name="model">l10n_bo_bill.producto_servicio</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="codigo_actividad"/>
+                            <field name="codigo_producto"/>
+                        </group>
+                        <group>
+                            <field name="descripcion_producto"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_obtener_productos_servicios_desde_api" model="ir.actions.server">
+        <field name="name">Obtener Productos/Servicios desde la API</field>
+        <field name="model_id" ref="model_l10n_bo_bill_producto_servicio"/>
+        <field name="state">code</field>
+        <field name="code">model.obtener_productos_desde_api()</field>
+    </record>
+</odoo>

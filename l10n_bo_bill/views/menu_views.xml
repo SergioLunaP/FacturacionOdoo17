@@ -1,0 +1,129 @@
+<odoo>
+    <!-- Menú principal -->
+    <menuitem id="menu_l10n_bo_bill_root" name="Facturación BO" sequence="10"/>
+
+    <!-- Menú de Informacion Relacionada a la Factura -->
+    <menuitem id="menu_l10n_bo_bill_factura" name="Información Factura" parent="menu_l10n_bo_bill_root" sequence="40"/>
+    
+    <menuitem id="menu_l10n_bo_bill_payment_types" name="Tipos de Pago"
+    parent="menu_l10n_bo_bill_factura" action="action_payment_type" sequence="10"/>
+    
+    <menuitem id="menu_leyenda_factura" name="Leyendas de Factura" 
+    parent="menu_l10n_bo_bill_factura" action="action_leyenda_factura" sequence="20"/>
+
+    <menuitem id="menu_l10n_bo_bill_eventos_significativos" name="Eventos Significativos"
+    parent="menu_l10n_bo_bill_factura" action="action_evento_significativo" sequence="30"/>
+
+    <menuitem id="menu_l10n_bo_bill_motivo_anulacion" name="Motivos de Anulación"
+    parent="menu_l10n_bo_bill_factura" action="action_motivo_anulacion" sequence="40"/>
+
+    <menuitem id="menu_l10n_bo_bill_pais_origen" name="Países de Origen"
+    parent="menu_l10n_bo_bill_factura" action="action_pais_origen" sequence="50"/>
+
+    <menuitem id="menu_l10n_bo_bill_tipos_factura" name="Tipos de Factura"
+    parent="menu_l10n_bo_bill_factura" action="action_tipos_factura" sequence="60"/>
+    
+    <menuitem id="menu_l10n_bo_bill_tipos_documento_identidad" name="Tipos de Documento de Identidad"
+    parent="menu_l10n_bo_bill_factura" action="action_tipos_documento_identidad" sequence="70"/>
+
+    <menuitem id="menu_l10n_bo_bill_tipos_documento_sector" name="Tipos de Documento de Sector"
+    parent="menu_l10n_bo_bill_factura" action="action_tipos_documento_sector" sequence="80"/>
+
+    <menuitem id="menu_l10n_bo_bill_tipos_emision" name="Tipos de Emisión"
+    parent="menu_l10n_bo_bill_factura" action="action_tipos_emision" sequence="90"/>
+
+    <menuitem id="menu_l10n_bo_bill_tipos_habitacion" name="Tipos de Habitación"
+    parent="menu_l10n_bo_bill_factura" action="action_tipos_habitacion" sequence="100"/>
+    
+    <menuitem id="menu_l10n_bo_bill_tipos_punto_venta" name="Tipos de Punto de Venta"
+    parent="menu_l10n_bo_bill_factura" action="action_tipos_punto_venta" sequence="110"/>
+
+
+    <!-- Menú de Configuración -->
+    <menuitem id="menu_l10n_bo_bill_configuracion" name="Configuración" parent="menu_l10n_bo_bill_root" sequence="50"/>
+    
+    <menuitem id="menu_direccion_api" name="Direcciones API" 
+    parent="menu_l10n_bo_bill_configuracion" action="action_direccion_api"/>
+
+    <menuitem id="menu_cufd" name="CUFD" 
+    parent="menu_l10n_bo_bill_configuracion" action="action_cufd"/>
+    
+    <menuitem id="menu_cuis" name="CUIS" 
+    parent="menu_l10n_bo_bill_configuracion" action="action_cuis"/>
+
+    
+    <!-- Menú de Sincronización -->
+    <menuitem id="menu_l10n_bo_bill_sincronizacion" name="Sincronización" parent="menu_l10n_bo_bill_root" sequence="30"/>
+
+    <menuitem id="menu_sincronizar_clientes" name="Sincronizar Clientes"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_obtener_clientes_desde_api" sequence="10"/>
+
+    <menuitem id="menu_sincronizar_productos" name="Sincronizar Productos"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_obtener_productos_desde_api" sequence="20"/>
+
+    <menuitem id="menu_sincronizar_leyendas" name="Sincronizar Leyendas"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_obtener_leyendas_desde_api" sequence="30"/>
+    
+    <menuitem id="menu_sincronizar_productos_servicios" name="Sincronizar Productos/Servicios"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_obtener_productos_servicios_desde_api" sequence="40"/>
+
+    <menuitem id="menu_sincronizar_cufd" name="Sincronizar CUFD"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_obtener_cufd_desde_api" sequence="50"/>
+
+    <menuitem id="menu_sincronizar_cuis" name="Sincronizar CUIS" 
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_obtener_cuis_desde_api" sequence="60"/>
+
+    <menuitem id="menu_sincronizar_payment_types" name="Sincronizar Tipos de Pago"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_payment_type_sync" sequence="70"/>
+    
+    <menuitem id="menu_sincronizar_eventos_significativos" name="Sincronizar Eventos Significativos"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_eventos_significativos_sync" sequence="80"/>
+
+    <menuitem id="menu_sincronizar_motivos_anulacion" name="Sincronizar Motivos de Anulación"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_motivos_anulacion_sync" sequence="90"/>
+
+    <menuitem id="menu_sincronizar_paises_origen" name="Sincronizar Países de Origen"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_paises_origen_sync" sequence="100"/>
+
+    <menuitem id="menu_sincronizar_tipos_factura" name="Sincronizar Tipos de Factura"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_tipos_factura_sync" sequence="110"/>
+    
+    <menuitem id="menu_sincronizar_tipos_documento_identidad" name="Sincronizar Tipos de Documento de Identidad"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_tipos_documento_identidad_sync" sequence="120"/>
+
+    <menuitem id="menu_sincronizar_tipos_documento_sector" name="Sincronizar Tipos de Documento de Sector"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_tipos_documento_sector_sync" sequence="130"/>
+
+    <menuitem id="menu_sincronizar_tipos_emision" name="Sincronizar Tipos de Emisión"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_tipos_emision_sync" sequence="140"/>
+
+    <menuitem id="menu_sincronizar_tipos_habitacion" name="Sincronizar Tipos de Habitación"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_tipos_habitacion_sync" sequence="150"/>
+
+    <menuitem id="menu_sincronizar_tipos_punto_venta" name="Sincronizar Tipos de Punto de Venta"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_tipos_punto_venta_sync" sequence="160"/>
+
+    <menuitem id="menu_sincronizar_unidades_medida" name="Sincronizar Unidades de Medida"
+    parent="menu_l10n_bo_bill_sincronizacion" action="action_unidades_medida_sync" sequence="170"/>
+
+
+    <!-- Menú Punto de Venta -->
+    <menuitem id="menu_l10n_bo_bill_punto_venta" name="Punto de Venta" parent="menu_l10n_bo_bill_root" sequence="10"/>
+
+    <menuitem id="menu_punto_venta" name="Puntos de Venta" 
+    parent="menu_l10n_bo_bill_punto_venta" action="action_punto_venta"/>
+
+    <menuitem id="menu_sucursal" name="Sucursales"
+    parent="menu_l10n_bo_bill_punto_venta" action="action_sucursal"/>
+
+    
+    <!-- Menú de Homologación -->
+    <menuitem id="menu_l10n_bo_bill_homologacion" name="Homologación" parent="menu_l10n_bo_bill_root" sequence="20"/>
+
+    <menuitem id="menu_l10n_bo_bill_unidades_medida" name="Unidades de Medida" 
+    parent="menu_l10n_bo_bill_homologacion" action="action_unidades_medida"/>
+
+    <menuitem id="menu_producto_servicio" name="Productos y Servicios" 
+    parent="menu_l10n_bo_bill_homologacion" action="action_producto_servicio"/>
+
+</odoo>

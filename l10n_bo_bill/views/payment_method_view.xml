@@ -1,0 +1,22 @@
+<odoo>
+    <!-- Extender la vista de formulario de métodos de pago -->
+    <record id="view_payment_method_form_inherit" model="ir.ui.view">
+        <field name="name">payment.method.form.inherit</field>
+        <field name="model">payment.method</field>
+        <field name="inherit_id" ref="payment.payment_method_form"/>
+        <field name="arch" type="xml">
+            <!-- Ubicación para insertar el nuevo campo codigoClasificador -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="codigo_clasificador" string="Código Clasificador"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_obtener_metodos_pago_desde_api" model="ir.actions.server">
+        <field name="name">Sincronizar Métodos de Pago</field>
+        <field name="model_id" ref="model_payment_method"/>
+        <field name="state">code</field>
+        <field name="code">model.obtener_metodos_pago_desde_api()</field>
+    </record>
+
+</odoo>

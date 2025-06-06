@@ -1,0 +1,56 @@
+<odoo>
+    <!-- Vista en árbol para CUIS -->
+    <record id="view_cuis_tree" model="ir.ui.view">
+        <field name="name">cuis.tree</field>
+        <field name="model">l10n_bo_bill.cuis</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="codigo"/>
+                <field name="fecha_solicitada"/>
+                <field name="fecha_vigencia"/>
+                <field name="vigente"/>
+                <field name="id_punto_venta"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista en formulario para CUIS -->
+    <record id="view_cuis_form" model="ir.ui.view">
+        <field name="name">cuis.form</field>
+        <field name="model">l10n_bo_bill.cuis</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="codigo"/>
+                            <field name="fecha_solicitada"/>
+                        </group>
+                        <group>
+                            <field name="fecha_vigencia"/>
+                            <field name="vigente"/>
+                        </group>
+                        <group>
+                            <field name="id_punto_venta"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Acción para CUIS -->
+    <record id="action_cuis" model="ir.actions.act_window">
+        <field name="name">CUIS</field>
+        <field name="res_model">l10n_bo_bill.cuis</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_obtener_cuis_desde_api" model="ir.actions.server">
+        <field name="name">Obtener CUIS desde la API</field>
+        <field name="model_id" ref="model_l10n_bo_bill_cuis"/>
+        <field name="state">code</field>
+        <field name="code">model.obtener_cuis_desde_api()</field>
+    </record>
+
+</odoo>

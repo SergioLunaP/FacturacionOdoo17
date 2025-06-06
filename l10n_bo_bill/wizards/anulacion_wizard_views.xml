@@ -1,0 +1,25 @@
+<odoo>
+    <record id="view_anulacion_wizard_form" model="ir.ui.view">
+        <field name="name">anulacion.wizard.form</field>
+        <field name="model">l10n_bo_bill.anulacion_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Anulación de Factura">
+                <group>
+                    <field name="motivo_anulacion_id"/>
+                </group>
+                <footer>
+                    <button name="confirmar_anulacion" type="object" string="Confirmar" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_anulacion_wizard" model="ir.actions.act_window">
+        <field name="name">Anulación de Factura</field>
+        <field name="res_model">l10n_bo_bill.anulacion_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_anulacion_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,50 @@
+<odoo>
+    <!-- Acción para Leyenda de Factura -->
+    <record id="action_leyenda_factura" model="ir.actions.act_window">
+        <field name="name">Leyendas de Factura</field>
+        <field name="res_model">l10n_bo_bill.leyenda_factura</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>Gestiona las leyendas de las facturas para la facturación electrónica.</p>
+        </field>
+    </record>
+    
+    <!-- Vista en árbol para Leyenda de Factura -->
+    <record id="view_leyenda_factura_tree" model="ir.ui.view">
+        <field name="name">leyenda.factura.tree</field>
+        <field name="model">l10n_bo_bill.leyenda_factura</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="codigo_actividad"/>
+                <field name="descripcion_leyenda"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista en formulario para Leyenda de Factura -->
+    <record id="view_leyenda_factura_form" model="ir.ui.view">
+        <field name="name">leyenda.factura.form</field>
+        <field name="model">l10n_bo_bill.leyenda_factura</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="codigo_actividad"/>
+                        </group>
+                        <group>
+                            <field name="descripcion_leyenda"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_obtener_leyendas_desde_api" model="ir.actions.server">
+        <field name="name">Obtener Leyendas desde la API</field>
+        <field name="model_id" ref="model_l10n_bo_bill_leyenda_factura"/>
+        <field name="state">code</field>
+        <field name="code">model.obtener_leyendas_desde_api()</field>
+    </record>
+</odoo>

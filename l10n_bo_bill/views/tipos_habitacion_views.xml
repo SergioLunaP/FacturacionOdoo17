@@ -1,0 +1,48 @@
+<odoo>
+    <!-- Vista Formulario -->
+    <record id="view_tipos_habitacion_form" model="ir.ui.view">
+        <field name="name">tipos.habitacion.form</field>
+        <field name="model">l10n_bo_bill.tipos_habitacion</field>
+        <field name="arch" type="xml">
+            <form string="Tipos de Habitación">
+                <sheet>
+                    <group>
+                        <field name="external_id" invisible="1"/>
+                        <field name="codigo_clasificador"/>
+                        <field name="descripcion"/>
+                        <field name="codigo_tipo_parametro"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Tree -->
+    <record id="view_tipos_habitacion_tree" model="ir.ui.view">
+        <field name="name">tipos.habitacion.tree</field>
+        <field name="model">l10n_bo_bill.tipos_habitacion</field>
+        <field name="arch" type="xml">
+            <tree string="Tipos de Habitación">
+                <field name="codigo_clasificador"/>
+                <field name="descripcion"/>
+                <field name="codigo_tipo_parametro"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Acción para abrir la vista -->
+    <record id="action_tipos_habitacion" model="ir.actions.act_window">
+        <field name="name">Tipos de Habitación</field>
+        <field name="res_model">l10n_bo_bill.tipos_habitacion</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Acción del servidor para la sincronización -->
+    <record id="action_tipos_habitacion_sync" model="ir.actions.server">
+        <field name="name">Sincronizar Tipos de Habitación</field>
+        <field name="model_id" ref="model_l10n_bo_bill_tipos_habitacion"/>
+        <field name="state">code</field>
+        <field name="code">model.obtener_tipos_habitacion_desde_api()</field>
+    </record>
+
+</odoo>

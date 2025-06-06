@@ -1,0 +1,64 @@
+<odoo>
+    <!-- Vista en árbol para CUFD -->
+    <record id="view_cufd_tree" model="ir.ui.view">
+        <field name="name">cufd.tree</field>
+        <field name="model">l10n_bo_bill.cufd</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="codigo"/>
+                <field name="codigo_control"/>
+                <field name="fecha_inicio"/>
+                <field name="fecha_vigencia"/>
+                <field name="vigente"/>
+                <field name="id_punto_venta"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista en formulario para CUFD -->
+    <record id="view_cufd_form" model="ir.ui.view">
+        <field name="name">cufd.form</field>
+        <field name="model">l10n_bo_bill.cufd</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <!-- Botón para obtener el CUFD desde la API -->
+                    <button name="obtener_cufd_desde_api" type="object" string="Obtener CUFD desde API" class="btn-primary"/>
+<!--                     <button name="mensaje_prueba" type="object" string="Mensaje de prueba" class="btn-primary"/>
+ -->
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="codigo"/>
+                            <field name="codigo_control"/>
+                        </group>
+                        <group>
+                            <field name="fecha_inicio"/>
+                            <field name="fecha_vigencia"/>
+                        </group>
+                        <group>
+                            <field name="vigente"/>
+                            <field name="id_punto_venta"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción para CUFD -->
+    <record id="action_cufd" model="ir.actions.act_window">
+        <field name="name">CUFD</field>
+        <field name="res_model">l10n_bo_bill.cufd</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Acción para obtener CUFD desde la API -->
+    <record id="action_obtener_cufd_desde_api" model="ir.actions.server">
+        <field name="name">Obtener CUFD desde la API</field>
+        <field name="model_id" ref="model_l10n_bo_bill_cufd"/>
+        <field name="state">code</field>
+        <field name="code">model.obtener_cufd_desde_api()</field>
+    </record>
+</odoo>
