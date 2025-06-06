@@ -1,17 +1,18 @@
 <odoo>
     <!-- Vista en árbol para Sucursal -->
     <record id="view_sucursal_tree" model="ir.ui.view">
-        <field name="name">sucursal.tree</field>
+        <field name="name">sucursal.list</field>
         <field name="model">l10n_bo_bill.sucursal</field>
+        <field name="type">list</field> 
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="codigo"/>
                 <field name="departamento"/>
                 <field name="direccion"/>
                 <field name="municipio"/>
                 <field name="nombre"/>
                 <field name="telefono"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -46,11 +47,11 @@
                         <!-- Página para registrar los Puntos de Venta relacionados -->
                         <page string="Puntos de Venta">
                             <field name="puntos_venta_ids">
-                                <tree editable="bottom">
+                                <list editable="bottom">
                                     <field name="codigo"/>
                                     <field name="nombre"/>
                                     <field name="tipo"/>
-                                </tree>
+                                </list>
                                 <form>
                                     <group>
                                         <group>
@@ -75,7 +76,7 @@
     <record id="action_sucursal" model="ir.actions.act_window">
         <field name="name">Sucursales</field>
         <field name="res_model">l10n_bo_bill.sucursal</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
 </odoo>

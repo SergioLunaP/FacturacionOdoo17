@@ -2,7 +2,7 @@
     <record id="action_direccion_api" model="ir.actions.act_window">
         <field name="name">Direcciones API</field>
         <field name="res_model">l10n_bo_bill.direccion_api</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p>Gestiona las direcciones API utilizadas para la facturación.</p>
         </field>
@@ -10,14 +10,16 @@
     
     <record id="view_direccion_api_tree" model="ir.ui.view">
         <field name="name">direccion.api.tree</field>
+        <field name="type">list</field> 
         <field name="model">l10n_bo_bill.direccion_api</field>
+        <field name="type">list</field> 
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name"/>
                 <field name="url"/>
                 <field name="tipo"/>
                 <field name="activo"/>
-            </tree>
+            </list>
         </field>
     </record>
 

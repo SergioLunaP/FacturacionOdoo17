@@ -19,14 +19,15 @@
 
     <!-- Vista Tree -->
     <record id="view_evento_significativo_tree" model="ir.ui.view">
-        <field name="name">evento.significativo.tree</field>
+        <field name="name">evento.significativo.list</field>
         <field name="model">l10n_bo_bill.evento_significativo</field>
+        <field name="type">list</field> 
         <field name="arch" type="xml">
-            <tree string="Eventos Significativos">
+            <list string="Eventos Significativos">
                 <field name="codigo_clasificador"/>
                 <field name="descripcion"/>
                 <field name="codigo_tipo_parametro"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -34,7 +35,7 @@
     <record id="action_evento_significativo" model="ir.actions.act_window">
         <field name="name">Eventos Significativos</field>
         <field name="res_model">l10n_bo_bill.evento_significativo</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <!-- Acción del servidor para la sincronización -->

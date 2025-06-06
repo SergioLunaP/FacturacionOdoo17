@@ -19,14 +19,15 @@
 
     <!-- Vista Tree -->
     <record id="view_tipos_documento_sector_tree" model="ir.ui.view">
-        <field name="name">tipos.documento.sector.tree</field>
+        <field name="name">tipos.documento.sector.list</field>
         <field name="model">l10n_bo_bill.tipos_documento_sector</field>
+        <field name="type">list</field> 
         <field name="arch" type="xml">
-            <tree string="Tipos de Documento de Sector">
+            <list string="Tipos de Documento de Sector">
                 <field name="codigo_clasificador"/>
                 <field name="descripcion"/>
                 <field name="codigo_tipo_parametro"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -34,7 +35,7 @@
     <record id="action_tipos_documento_sector" model="ir.actions.act_window">
         <field name="name">Tipos de Documento de Sector</field>
         <field name="res_model">l10n_bo_bill.tipos_documento_sector</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <!-- Acción del servidor para la sincronización -->

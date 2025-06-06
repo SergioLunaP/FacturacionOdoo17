@@ -1,15 +1,16 @@
 <odoo>
     <!-- Vista en árbol para Punto de Venta -->
     <record id="view_punto_venta_tree" model="ir.ui.view">
-        <field name="name">punto.venta.tree</field>
+        <field name="name">punto.venta.list</field>
         <field name="model">l10n_bo_bill.punto_venta</field>
+        <field name="type">list</field> 
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="codigo"/>
                 <field name="nombre"/>
                 <field name="id_sucursal"/>
                 <field name="punto_venta_principal"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -44,13 +45,13 @@
                         <!-- Página para registrar los CUFD relacionados -->
                         <page string="CUFD">
                             <field name="cufd_ids">
-                                <tree editable="bottom">
+                                <list editable="bottom">
                                     <field name="codigo"/>
                                     <field name="codigo_control"/>
                                     <field name="fecha_inicio"/>
                                     <field name="fecha_vigencia"/>
                                     <field name="vigente"/>
-                                </tree>
+                                </list>
                                 <form>
                                     <group>
                                         <group>
@@ -78,6 +79,6 @@
     <record id="action_punto_venta" model="ir.actions.act_window">
         <field name="name">Puntos de Venta</field>
         <field name="res_model">l10n_bo_bill.punto_venta</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 </odoo>

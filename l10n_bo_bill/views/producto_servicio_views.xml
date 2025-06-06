@@ -3,7 +3,7 @@
     <record id="action_producto_servicio" model="ir.actions.act_window">
         <field name="name">Productos y Servicios</field>
         <field name="res_model">l10n_bo_bill.producto_servicio</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p>Gestiona los productos y servicios para la facturación.</p>
         </field>
@@ -11,14 +11,15 @@
     
     <!-- Vista en árbol para Productos y Servicios -->
     <record id="view_producto_servicio_tree" model="ir.ui.view">
-        <field name="name">producto.servicio.tree</field>
+        <field name="name">producto.servicio.list</field>
         <field name="model">l10n_bo_bill.producto_servicio</field>
+        <field name="type">list</field> 
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="codigo_actividad"/>
                 <field name="codigo_producto"/>
                 <field name="descripcion_producto"/>
-            </tree>
+            </list>
         </field>
     </record>
 

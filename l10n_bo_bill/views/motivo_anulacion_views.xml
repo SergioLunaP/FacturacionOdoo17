@@ -19,14 +19,15 @@
 
     <!-- Vista Tree -->
     <record id="view_motivo_anulacion_tree" model="ir.ui.view">
-        <field name="name">motivo.anulacion.tree</field>
+        <field name="name">motivo.anulacion.list</field>
         <field name="model">l10n_bo_bill.motivo_anulacion</field>
+        <field name="type">list</field> 
         <field name="arch" type="xml">
-            <tree string="Motivos de Anulación">
+            <list string="Motivos de Anulación">
                 <field name="codigo_clasificador"/>
                 <field name="descripcion"/>
                 <field name="codigo_tipo_parametro"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -34,7 +35,7 @@
     <record id="action_motivo_anulacion" model="ir.actions.act_window">
         <field name="name">Motivos de Anulación</field>
         <field name="res_model">l10n_bo_bill.motivo_anulacion</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <!-- Acción del servidor para la sincronización -->

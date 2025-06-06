@@ -12,7 +12,7 @@
                 </div>
                 
             </xpath>
-            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="attributes">
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="attributes">
                 <attribute name="readonly">1</attribute>
             </xpath> 
             <header>
