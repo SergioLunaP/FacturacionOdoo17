@@ -75,7 +75,7 @@ class AccountMove(models.Model):
     valid_nit = fields.Boolean(string='Valid NIT', default=True)
     montoGiftCard = fields.Text(string='montoGiftCard', default='')
     is_reverted = fields.Boolean('Is Reverted', default=False)
-    payment_method_code = fields.Selection(selection='_get_payment_methods', string="Método de Pago", required=True, help="Selecciona el método de pago desde la API")
+    payment_method_code = fields.Selection(selection='_get_payment_methods', string="Método de Pago", help="Selecciona el método de pago desde la API")
     url = fields.Text(string="URL")
     
     mostrar_boton_fin_contingencia = fields.Boolean(
