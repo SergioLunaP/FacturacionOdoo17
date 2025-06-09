@@ -1,0 +1,22 @@
+<odoo>
+    <record id="view_partner_form_inherit_api_sync" model="ir.ui.view">
+        <field name="name">res.partner.form.api.sync</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Insertamos después del campo 'vat' (NIT) -->
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="tipo_documento_identidad"/>
+                <field name="complemento"/>
+                <field name="codigo_cliente"/>
+            </xpath>
+
+            <!-- Si quieres mostrar el external_id en modo solo lectura -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="external_id" readonly="1"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

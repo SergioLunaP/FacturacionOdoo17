@@ -1,4 +1,10 @@
-from odoo import models, fields
+from odoo import models, fields, api
+from odoo.exceptions import UserError
+import requests
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class DireccionApi(models.Model):
     _name = 'l10n_bo_bill.direccion_api'
@@ -10,10 +16,14 @@ class DireccionApi(models.Model):
         [
             ('computarizada', 'Computarizada'),
             ('electronica', 'Electrónica')
-        ], 
+        ],
         string='Tipo',
         required=True
     )
-    
+
     activo = fields.Boolean(string='Activo', default=True)
-    
+    contingencia = fields.Boolean(string="Contingencia", default=False)
+    evento_id = fields.Integer(string="ID del Evento de Contingencia")
+
+
+

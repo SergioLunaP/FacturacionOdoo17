@@ -1,4 +1,5 @@
 <odoo>
+    <!-- Acción -->
     <record id="action_direccion_api" model="ir.actions.act_window">
         <field name="name">Direcciones API</field>
         <field name="res_model">l10n_bo_bill.direccion_api</field>
@@ -7,12 +8,11 @@
             <p>Gestiona las direcciones API utilizadas para la facturación.</p>
         </field>
     </record>
-    
+
+    <!-- Vista de lista -->
     <record id="view_direccion_api_tree" model="ir.ui.view">
-        <field name="name">direccion.api.tree</field>
-        <field name="type">list</field> 
+        <field name="name">direccion.api.list</field>
         <field name="model">l10n_bo_bill.direccion_api</field>
-        <field name="type">list</field> 
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
@@ -23,6 +23,7 @@
         </field>
     </record>
 
+    <!-- Vista de formulario -->
     <record id="view_direccion_api_form" model="ir.ui.view">
         <field name="name">direccion.api.form</field>
         <field name="model">l10n_bo_bill.direccion_api</field>
@@ -34,9 +35,18 @@
                         <field name="url"/>
                         <field name="tipo"/>
                         <field name="activo"/>
+                        <!-- <field name="contingencia"/>
+                        <field name="evento_id"/> -->
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
+
+    <!-- Menú en Configuración de Contabilidad -->
+    <menuitem id="menu_direccion_api_parent"
+              name="Direcciones API"
+              parent="account.menu_finance_configuration"
+              action="action_direccion_api"
+              sequence="50"/>
 </odoo>

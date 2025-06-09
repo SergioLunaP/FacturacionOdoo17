@@ -9,48 +9,17 @@
     'depends': ['base', 'web' ,'contacts', 'stock', 'account'],
     'data': [
         'security/ir.model.access.csv',
+        'views/direccion_api_views.xml',  
         
-        'views/direccion_api_views.xml',
-        'views/leyenda_factura_views.xml',
-        'views/producto_servicio_views.xml',
-        'views/unidades_medida_views.xml',
-        'views/sucursal_views.xml',
-        'views/punto_venta_views.xml',
-        'views/cufd_views.xml',
-        'views/cuis_views.xml',
-        'views/evento_significativo_views.xml',
-        'views/motivo_anulacion_views.xml',
-        'views/pais_origen_views.xml',
-        'views/tipos_factura_views.xml',
-        'views/tipos_documento_identidad_views.xml',
-        'views/tipos_documento_sector_views.xml',
-        'views/tipos_emision_views.xml',
-        'views/tipos_habitacion_views.xml',
-        'views/tipos_punto_venta_views.xml',
+        'wizards/account_move_reversal_view_inherit.xml',
+        'wizards/contingencia_inicio_wizard.xml',
         
-        'wizards/anulacion_wizard_views.xml',
-        'wizards/registrar_evento_contingencia_views.xml',
-        'wizards/contingencia_wizard_view.xml',
-
-        'views/res_partner_views.xml',
-        'views/product_template_view.xml',
-        'views/account_move_view.xml',
-        #'views/payment_method_view.xml',
-        'views/tipo_pago_view.xml',
-        'views/res_company_view.xml',
-
-        'data/cron_job.xml',
-        'views/menu_views.xml',
+        'views/res_partner_view.xml',
+        'views/product_template_form_inherit.xml',
+        'views/account_move_form_inherit.xml'
+        
     ],
     
-    # 'assets': {
-    #     'web.assets_backend': [
-    #         'l10n_bo_bill/static/src/js/progress_modal.js',
-    #         'l10n_bo_bill/static/src/xml/progress_modal_template.xml',
-    #         'l10n_bo_bill/static/src/css/progress_modal.css',
-    #     ],
-    # },
-
  
     
     'installable': True,

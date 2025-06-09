@@ -1,3 +1,2 @@
-from . import anulacion_wizard
-from . import contingencia_wizard
-from . import registrar_evento_contingencia_wizard
+from . import account_move_reverse_wizard_inherit
+from . import contingencia_inicio_wizard

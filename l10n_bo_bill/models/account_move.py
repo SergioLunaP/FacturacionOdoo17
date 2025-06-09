@@ -8,6 +8,8 @@ import logging
 import base64
 from datetime import datetime
 import pytz
+from datetime import timedelta
+
 
 
 _logger = logging.getLogger(__name__)
@@ -15,329 +17,342 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    # Campos para almacenar la respuesta de la API
-    codigo_estado = fields.Char(string="Código Estado")
-    cuf = fields.Char(string="CUF")
-    numero_factura = fields.Char(string="Número de Factura")
-    url = fields.Char(string="URL")
+    l10n_bo_cufd = fields.Text(string='CUFD Code')
+    l10n_bo_selling_point = fields.Many2one('selling_point', string='Selling Point', readonly=True)
+    l10n_bo_branch_office = fields.Many2one('branch_office', string='Branch Office', readonly=True)
+    l10n_bo_emission_type = fields.Many2one('emission_types', string='Emission Type')
+    qr_code = fields.Binary(string="QR Code", attachment=True, store=True)
+    l10n_bo_document_status = fields.Many2one('document_status', string='Document Status')
+
+    cafc = fields.Text(string='cafc', default='123')
+
+    e_billing = fields.Boolean(string='Electronic Billing', default=False)
+    representation_format = fields.Boolean('Graphic Representation Format', default=False)
+    representation_size = fields.Boolean('Graphic Representation Size')
+
+    is_drafted = fields.Boolean('Is Drafted', default=False)
+    is_cancelled = fields.Boolean('Is Cancelled', default=False)
+    is_confirmed = fields.Boolean('Is Confirmed', default=False)
+
+    journal_type = fields.Char(string='Journal Type')
+    inv_type = fields.Boolean(string='Invoice Type')
+    total_conv = fields.Float(default=0.0)
+    total_lit = fields.Char(string='Literal Total')
+
+    invoice_event_id = fields.Many2one('invoice_event', string='Invoice Event')
+    event_begin_date = fields.Datetime(string='Event Begin Date')
+    event_end_date = fields.Datetime(string='Event End Date')
+    manual_invoice_date = fields.Datetime(string='Manual Invoice Date')
+    is_manual = fields.Boolean('Is Manual', default=False)
+    invalid_nit = fields.Boolean('Invalid NIT', default=False)
+    total_discount = fields.Float(default=0.0)
+    invoice_caption = fields.Char(string='Invoice Caption')
+    is_offline = fields.Boolean('Is Offline', default=False)
+
+    dui = fields.Text('DUI')
+    auth_number = fields.Text('Authorization Number')
+    control_code = fields.Text('Control Code')
+
+    dosage_id = fields.Many2one('invoice_dosage', string='Dosage')
+    reversed_inv_id = fields.Many2one('cancelled_invoices', string='Reversed Invoice')
+    with_tax = fields.Boolean(string='With Tax', default=True)
+    page_break = fields.Boolean(string='Page Break', default=False)
+    manual_usd_edit = fields.Boolean(string='Manual USD Edit', default=False)
+    check_inv = fields.Boolean(string='Check Invoice', default=False)
+
+    dosage_data_edit = fields.Boolean(string='Dosage Data Editable')
+    cufd_cuf_edit = fields.Boolean(string='CUFD/CUF Editable')
+    skip_e_invoice_flow = fields.Boolean(string='Skip E-Invoice Flow')
+    token_check = fields.Integer(string='Token Status')
+    invoice_mails = fields.Text(string='Emails to Send')
     
-    factura_cancelada = fields.Boolean(string="Factura Cancelada", default=False)
     
-    payment_type_id = fields.Many2one('l10n_bo_bill.tipo_pago', string="Método de Pago", required=True)
-    contingencia = fields.Boolean(string="Factura Cancelada", default=False)
+    ##--------------------------Para Usar--------------------------##
+    l10n_bo_cuf = fields.Text(string='CUF Code')
+    l10n_bo_invoice_number = fields.Text(string='Invoice Number', readonly=True)
+    efact_control_code = fields.Text(string='Url', readonly=True)
+    
+    valid_nit = fields.Boolean(string='Valid NIT', default=True)
+    montoGiftCard = fields.Text(string='montoGiftCard', default='')
+    is_reverted = fields.Boolean('Is Reverted', default=False)
+    payment_method_code = fields.Selection(selection='_get_payment_methods', string="Método de Pago", required=True, help="Selecciona el método de pago desde la API")
+    url = fields.Text(string="URL")
+    
+    mostrar_boton_fin_contingencia = fields.Boolean(
+        compute='_compute_mostrar_boton_fin_contingencia', store=False
+    )
+    
+    
+    def _compute_mostrar_boton_fin_contingencia(self):
+        direccion_api = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)], limit=1)
+        for rec in self:
+            rec.mostrar_boton_fin_contingencia = direccion_api.contingencia if direccion_api else False
+
     
     def _get_api_url(self):
-        """Función para obtener la dirección de la API activa"""
-        direccion_apis = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)])
+        direccion_apis = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)], limit=1)
 
         if not direccion_apis:
-            raise UserError(_("No se encontró una configuración de la API activa."))
-
-        if len(direccion_apis) > 1:
-            raise UserError(_("Hay más de una dirección de API activa. Verifica la configuración."))
-
-        return direccion_apis[0]  # Retorna el registro completo
-
-
-    def action_envio_a_impuestos_y_confirmar(self):
-        """Primero envía a impuestos y luego confirma la factura."""
+            raise UserError("No se encontró una configuración de la API activa.")
         
-        self.verificar_comunicacion()
-        # Lógica de envío a impuestos (llama a action_envio_a_impuestos)
+        if len(direccion_apis) > 1:
+            raise UserError("Hay más de una dirección de API activa. Por favor, verifica la configuración.")
+
+        return direccion_apis.url
+
+    
+    @api.model
+    def _get_payment_methods(self):
+        #Metodos de Pago
+        api_url = self._get_api_url()
+        url = f"{api_url}/parametro/metodo-pago"
+
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            metodos = response.json()
+
+            if not isinstance(metodos, list):
+                raise UserError("La API no devolvió una lista válida de métodos de pago.")
+
+            return [
+                (str(m.get("codigoClasificador")), f"{m.get('codigoClasificador')} - {m.get('descripcion', 'Sin descripción')}")
+                for m in metodos if m.get("codigoClasificador")
+            ]
+
+        except requests.exceptions.RequestException as e:
+            _logger.error(f"Error al obtener métodos de pago de la API: {e}")
+            return []
+
+    def envio_sfv(self):
+        #Facturacion y verificacion de conexion
+        _logger.info("Iniciando proceso de envío SFV para las siguientes facturas: %s", self.ids)
+        direccion_api = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)], limit=1)
+        if direccion_api:
+            _logger.info("Dirección API: %s | Contingencia: %s", direccion_api.url, direccion_api.contingencia)
+        else:
+            _logger.warning("No hay API")
+
+        # If Contingencia Activa
+        if direccion_api and direccion_api.contingencia:
+            _logger.info("----Contingencia activa----")
+            self.action_envio_a_impuestos()
+            return
+
+        # Verificación normal si no hay contingencia
+        _logger.info("----Verificando comunicación----")
+        res = self.verificar_comunicacion()
+        if res:
+            _logger.info("----Sin Conexion - Wizard----")
+            return res
+
+        _logger.info("----Comunicación verificada----")
         self.action_envio_a_impuestos()
 
-        # Luego de enviar a impuestos, confirma la factura
-        self.action_post()  # Esto ejecuta el método de confirmación
 
     def action_envio_a_impuestos(self):
-        """Función que genera el JSON, lo envía al endpoint y maneja la respuesta."""
+        for factura in self:
+            _logger.info(f"Datos de factura ID: {factura.id} - Número: {factura.name}")
 
-        # Verificar si el cliente tiene un código_cliente
-        if not self.partner_id.codigo_cliente:
-            raise UserError(_("El cliente no tiene un código_cliente asignado."))
+            if factura.move_type != 'out_invoice':
+                raise UserError("Solo se pueden emitir facturas de cliente.")
 
-        # Buscar el punto de venta principal
-        puntos_venta = self.env['l10n_bo_bill.punto_venta'].search([('punto_venta_principal', '=', True)])
+            partner = factura.partner_id
+            if not partner.codigo_cliente or not partner.external_id:
+                raise UserError("El cliente no tiene external id.")
 
-        # Validar que haya un único punto de venta principal
-        if not puntos_venta:
-            raise UserError(_("No se encontró un Punto de Venta principal. Verifica la configuración."))
-        
-        if len(puntos_venta) > 1:
-            raise UserError(_("Hay más de un Punto de Venta marcado como principal. Por favor revisa la configuración."))
+            detalle = []
+            for line in factura.invoice_line_ids:
+                product = line.product_id
+                if not product.external_id:
+                    raise UserError(f"El producto '{product.name}' no tiene external id")
 
-        # Obtener el external_id del Punto de Venta principal y verificar contingencia
-        punto_venta_principal = puntos_venta[0]
-        id_punto_venta = punto_venta_principal.external_id
-        activo = not punto_venta_principal.contingencia  # Activo es True si contingencia es False
-
-        _logger.info("Eniviado impuestos activo: %s", activo)
-        
-        if punto_venta_principal.contingencia:
-            self.contingencia = True
-        _logger.info("Eniviado Contingenciao: %s", self.contingencia)
-
-        # Obtener el external_id del cliente (res.partner)
-        if not self.partner_id.external_id:
-            raise UserError(_("El cliente no tiene un external_id asignado."))
-        id_cliente = self.partner_id.external_id
-
-        # Obtener el código del método de pago
-        if not self.payment_type_id.codigo_clasificador:
-            raise UserError(_("No se ha seleccionado un método de pago válido."))
-
-        # Datos estáticos
-        nit_invalido = True
-
-        # Preparar el detalle del movimiento de las líneas de factura (account.move.line)
-        detalle = []
-        productos_no_homologados = []
-        
-        # Iterar sobre las líneas de productos de la factura
-        for line in self.invoice_line_ids:
-            # Verificar si el producto tiene unidad_medida_id y codigo_producto_id
-            if not line.product_id.unidad_medida_id or not line.product_id.codigo_producto_id:
-                productos_no_homologados.append(line.product_id.name)
-
-            # Obtener el external_id del producto
-            if not line.product_id.external_id:
-                raise UserError(_("El producto %s no tiene un external_id asignado." % line.product_id.name))
-
-            # Calcular el monto del descuento por unidad de producto
-            monto_descuento = line.price_unit * (line.discount / 100)
-
-            # Agregar los detalles del producto
-            detalle.append({
-                "idProducto": line.product_id.external_id,
-                "cantidad": str(line.quantity),
-                "montoDescuento": "{:.2f}".format(monto_descuento),
-                "precio":line.price_unit
-            })
-
-        # Si hay productos no homologados, lanzar excepción
-        if productos_no_homologados:
-            raise UserError(_("Producto(s) no homologado(s): %s. Verifica la unidad de medida y el código del producto SIN." % ', '.join(productos_no_homologados)))
-
-        # Obtener el registro de la API activa y asegurarse de que solo hay uno
-        direccion_api = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)], limit=1)
-        
-        if not direccion_api:
-            raise UserError(_("No se ha configurado una dirección de API activa."))
-        
-        # Construir la URL dependiendo del tipo de API
-        if direccion_api.tipo == 'computarizada':
-            url = f"{direccion_api.url}/factura/emitir-computarizada"
-        else:
-            url = f"{direccion_api.url}/factura/emitir"
-
-        _logger.info("URL de la API seleccionada: %s", url)
-
-        # Preparar el JSON, asignando el valor de "activo" según el campo contingencia
-        data = {
-            "usuario": self.partner_id.codigo_cliente,
-            "idPuntoVenta": id_punto_venta,
-            "idCliente": id_cliente,
-            "nitInvalido": nit_invalido,
-            "idSucursal": 1,
-            "activo": activo,  # Activo es True si contingencia es False
-            "codigoMetodoPago": self.payment_type_id.codigo_clasificador,
-            "detalle": detalle,
-            "cafc": False,
-        }
-
-        # Log para mostrar el body completo que se envía
-        _logger.info("Cuerpo de la solicitud (JSON): %s", json.dumps(data, indent=4))
-
-        headers = {
-            'Content-Type': 'application/json',
-        }
-
-        # Enviar los datos al endpoint
-        try:
-            response = requests.post(url, headers=headers, data=json.dumps(data))
-            response.raise_for_status()  # Esto lanza un error si la respuesta no es exitosa
-        except requests.exceptions.RequestException as e:
-            raise UserError(_("Error al conectar con la API: %s" % e))
-
-        # Verificar el estado de la respuesta
-        if response.status_code == 201:
-            try:
-                respuesta_json = response.json()
-                self.codigo_estado = respuesta_json.get("codigoEstado")
-                self.cuf = respuesta_json.get("cuf")
-                self.numero_factura = respuesta_json.get("numeroFactura")
-                self.url = respuesta_json.get("url")
-
-                # Generar y adjuntar el PDF al chatter
-                pdf_attachment_id = self.action_download_invoice_pdf()
+                detalle.append({
+                    "idProducto": product.external_id,
+                    "cantidad": str(line.quantity),
+                    "montoDescuento": "0.0",
+                    "precio": str(line.price_unit)
+                })
                 
-                # Publicar mensaje en el chatter con el enlace al PDF
-                if pdf_attachment_id:
-                    attachment_url = f"/web/content/{pdf_attachment_id}?download=true"
-                    message = _(
-                        "Factura emitida correctamente.\n"
-                        f"Código de Estado: {self.codigo_estado}\n"
-                        f"CUF: {self.cuf}\n"
-                        f"Número de Factura: {self.numero_factura}\n"
-                        f"url: {self.url}\n"
-                        f"<a href='{attachment_url}' target='_blank'>Descargar Factura (PDF)</a>"
-                    )
-                    self.message_post(body=message, attachment_ids=[pdf_attachment_id])
+            direccion_api = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)], limit=1)
 
-            except json.JSONDecodeError:
-                raise UserError(_("La API devolvió una respuesta no válida. No se pudo decodificar el JSON.\nRespuesta de la API: %s" % response.text))
-        else:
-            raise UserError(_("Error en la emisión de la factura. Código: %s\nRespuesta: %s" % (response.status_code, response.text)))
-        
-        
+            payload = {
+                "usuario": partner.codigo_cliente,
+                "idPuntoVenta": 1,
+                "idCliente": partner.external_id,
+                "nitInvalido": True,
+                "codigoMetodoPago": int(factura.payment_method_code),
+                "activo": not direccion_api.contingencia if direccion_api else True,
+                "masivo": False,
+                "detalle": detalle,
+                "idSucursal": 1,
+                "numeroFactura": None,
+                "fechaHoraEmision": None,
+                "cafc": False,
+                "numeroTarjeta": None,
+                "descuentoGlobal": None,
+                "monGiftCard": None
+            }
+
+            api_url = self._get_api_url()
+            url = f"{api_url}/factura/emitir-computarizada"
+
+            _logger.info(f"URL de emisión: {url}")
+            _logger.info(f"JSON enviado: {json.dumps(payload, indent=2)}")
+
+            try:
+                response = requests.post(url, json=payload, timeout=15)
+                response.raise_for_status()
+                data = response.json()
+
+                _logger.info(f"Respuesta API: {json.dumps(data, indent=2)}")
+
+                if not all(k in data for k in ('codigoEstado', 'cuf', 'numeroFactura', 'url')):
+                    raise UserError("La respuesta de la API no contiene todos los campos necesarios.")
+
+                query = """
+                    UPDATE account_move
+                    SET l10n_bo_cuf = %s,
+                        l10n_bo_invoice_number = %s,
+                        url = %s
+                    WHERE id = %s;
+                """
+                self.env.cr.execute(query, (
+                    data['cuf'],
+                    str(data['numeroFactura']),
+                    data['url'],
+                    factura.id
+                ))
+
+                _logger.info(f"Factura {factura.name} emitida correctamente con número {data['numeroFactura']}")
+                factura.action_post()
+
+            except requests.exceptions.HTTPError as e:
+                content = e.response.text if e.response else "Sin respuesta de la API"
+                _logger.error(f"Error HTTP al emitir factura {factura.name}: {e} - Respuesta: {content}")
+                raise UserError(f"Error HTTP {e.response.status_code}:\n{content}")
+
+            except requests.exceptions.RequestException as e:
+                _logger.error(f"Error de conexión al emitir factura {factura.name}: {e}")
+                raise UserError(f"No se pudo emitir la factura: {e}")
+
+        return True
+
+    #Llamar Wizard Revertir factura
+    def action_open_reversal_wizard(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Revertir Factura',
+            'res_model': 'account.move.reversal',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'active_ids': self.ids,
+                'active_model': 'account.move',
+            }
+        }
+
+    def revertir_anulacion(self):
+        for factura in self:
+            if not factura.l10n_bo_cuf:
+                raise UserError("La factura no tiene un CUF asignado.")
+
+            payload = {
+                "cuf": factura.l10n_bo_cuf,
+                "idPuntoVenta": 1,
+                "idSucursal": 1
+            }
+
+            api_url = self._get_api_url()
+            url = f"{api_url}/factura/reversion-anular"
+
+            try:
+                response = requests.post(url, json=payload, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+
+                if data.get('codigoEstado') != "907":
+                    raise UserError(f"No se confirmó la reversión en la API. Estado: {data.get('codigoEstado')}")
+
+                # Actualizar bo_bill
+                factura.write({
+                    'is_cancelled': False,
+                    'is_reverted': True
+                })
+
+                _logger.info(f"Reversión de anulación, factura {factura.name}.")
+
+            except requests.exceptions.RequestException as e:
+                _logger.error(f"Error al revertir la anulación de la factura {factura.name}: {e}")
+                raise UserError(f"Error al revertir la anulación en la API: {e}")
+        return True
+    
     def action_download_invoice_pdf(self):
-        """Función para descargar el PDF de la factura desde la API y adjuntarlo al chatter."""
-        if not self.cuf or not self.numero_factura:
+        #Descargar pdf factura
+        if not self.l10n_bo_cuf or not self.l10n_bo_invoice_number:
             raise UserError(_("No hay CUF o número de factura disponible para esta factura."))
 
-        # Obtener la URL base de la API desde el campo correcto del objeto direccion_api
-        direccion_api = self._get_api_url()  # Aquí debería obtener el registro de dirección de la API
-        base_url = direccion_api.url if isinstance(direccion_api, str) else str(direccion_api.url)
+        direccion_api = self._get_api_url()  
+        base_url = direccion_api
 
-        # Verificar que la URL tenga un esquema (http o https)
         if not base_url.startswith("http"):
             base_url = "http://" + base_url
-
-        # Completar la URL con la ruta de descarga del PDF
         full_base_url = f"{base_url}/pdf/download"
 
-        # Parámetros que se envían a la API en la URL
         params = {
-            'cufd': self.cuf,
-            'numeroFactura': self.numero_factura
+            'cufd': self.l10n_bo_cuf,
+            'numeroFactura': self.l10n_bo_invoice_number
         }
 
-        # Construir la URL completa para revisión y logging
         full_url = requests.Request('GET', full_base_url, params=params).prepare().url
         _logger.info("URL completa para la descarga del PDF: %s", full_url)
 
         try:
-            # Realizar la solicitud GET con los parámetros en la URL
             response = requests.get(full_url)
-
-            # Verificar si la solicitud fue exitosa
             if response.status_code == 200:
                 # Codificar el contenido binario del PDF a base64
                 pdf_content = base64.b64encode(response.content)
-
-                # Crear adjunto en Odoo y guardar el PDF
                 attachment = self.env['ir.attachment'].create({
-                    'name': 'Factura-%s.pdf' % self.numero_factura,
+                    'name': 'Factura-%s.pdf' % self.l10n_bo_invoice_number,
                     'type': 'binary',
                     'datas': pdf_content,
                     'res_model': 'account.move',
                     'res_id': self.id,
                     'mimetype': 'application/pdf',
                 })
-
-                # Retorna el ID del adjunto para uso en el chatter
                 return attachment.id
             else:
                 _logger.error("Error al descargar el PDF. Código de estado: %s. Respuesta: %s", response.status_code, response.text)
                 raise UserError(_("Error al descargar el PDF. Código de estado: %s" % response.status_code))
         except requests.exceptions.RequestException as e:
             raise UserError(_("Error al conectar con la API: %s" % e))
-
-
-    def action_anular_factura(self, codigo_motivo_anulacion):
-        """Función para anular una factura y pasar al estado 'cancel'."""
-        if not self.cuf:
-            raise UserError(_("No hay CUF disponible para esta factura."))
-
-        # Buscar el punto de venta principal
-        puntos_venta = self.env['l10n_bo_bill.punto_venta'].search([('punto_venta_principal', '=', True)])
-
-        # Validar que haya un único punto de venta principal
-        if not puntos_venta:
-            raise UserError(_("No se encontró un Punto de Venta principal. Verifica la configuración."))
-        
-        if len(puntos_venta) > 1:
-            raise UserError(_("Hay más de un Punto de Venta marcado como principal. Por favor revisa la configuración."))
-
-        # Obtener el external_id del Punto de Venta principal
-        id_punto_venta = puntos_venta.external_id
-
-        # Obtener la URL de la API activa
-        direccion_api = self._get_api_url()  # Asegúrate de que este método devuelve la URL correctamente
-        url = f"{direccion_api.url}/factura/anular"
-
-        # Cuerpo de la solicitud
-        data = {
-            'cuf': self.cuf,
-            'anulacionMotivo': codigo_motivo_anulacion,  # Usar el código clasificador seleccionado
-            'idPuntoVenta': id_punto_venta,  # Mandar el external_id del Punto de Venta principal
-            'idSucursal':1
-        }
-
-        headers = {
-            'Content-Type': 'application/json',
-        }
-
-        # Manejo del bloque try/except para la solicitud HTTP
-        try:
-            response = requests.post(url, json=data, headers=headers)
-            response.raise_for_status()  # Esto lanza una excepción si la respuesta no es exitosa
-        except requests.exceptions.RequestException as e:
-            raise UserError(_("Error al conectar con la API: %s" % e))  # Elimina 'response.text' porque 'response' puede no estar asignado
-
-        # Comprobar si la solicitud fue exitosa
-        if response.status_code == 200:
-            respuesta_json = response.json()
-            codigo_estado = respuesta_json.get("codigoEstado")
-            descripcion = respuesta_json.get("descripcion")
-
-            # Si la anulación es exitosa, pasar al estado cancel
-            self.write({'state': 'cancel'})
-
-            # Registrar un mensaje en el chatter
-            self.message_post(body=_("Factura anulada correctamente. Código de Estado: %s. Descripción: %s" % (codigo_estado, descripcion)))
-        else:
-            raise UserError(_("Error en la anulación de la factura. Código: %s\nRespuesta de la API: %s" % (response.status_code, response.text)))
-
         
     def action_invoice_preview(self):
-        """Previsualizar el PDF de la factura desde la API."""
-        if not self.cuf or not self.numero_factura:
+        #Previsualizacion Factura
+        if not self.l10n_bo_cuf or not self.l10n_bo_invoice_number:
             raise UserError(_("No hay CUF o número de factura disponible para esta factura."))
 
-        # Obtener la URL base de la API desde el campo correcto del objeto direccion_api
-        direccion_api = self._get_api_url()  # Aquí debería obtener el registro de dirección de la API
-        base_url = direccion_api.url if isinstance(direccion_api, str) else str(direccion_api.url)
-
-        # Verificar que la URL tenga un esquema (http o https)
+        direccion_api = self._get_api_url()
+        base_url = direccion_api
         if not base_url.startswith("http"):
             base_url = "http://" + base_url
-
-        # Completar la URL con la ruta de descarga del PDF
         full_base_url = f"{base_url}/pdf/download"
 
-        # Parámetros que se envían a la API en la URL
         params = {
-            'cufd': self.cuf,
-            'numeroFactura': self.numero_factura
+            'cufd': self.l10n_bo_cuf,
+            'numeroFactura': self.l10n_bo_invoice_number
         }
 
-        # Construir la URL completa para revisión y logging
         full_url = requests.Request('GET', full_base_url, params=params).prepare().url
         _logger.info("URL completa para la previsualización del PDF: %s", full_url)
 
         try:
-            # Realizar la solicitud GET con los parámetros en la URL
             response = requests.get(full_url)
-
-            # Verificar si la solicitud fue exitosa
             if response.status_code == 200:
-                # Codificar el contenido binario del PDF a base64
                 pdf_content = base64.b64encode(response.content)
                 
-                # Crear un archivo adjunto con el PDF
                 attachment = self.env['ir.attachment'].create({
-                    'name': 'Factura-%s.pdf' % self.numero_factura,
+                    'name': 'Factura-%s.pdf' % self.l10n_bo_invoice_number,
                     'type': 'binary',
                     'datas': pdf_content,
                     'res_model': 'account.move',
@@ -345,7 +360,6 @@ class AccountMove(models.Model):
                     'mimetype': 'application/pdf',
                 })
 
-                # Retornar una acción para abrir el PDF en el navegador sin descargarlo
                 return {
                     'type': 'ir.actions.act_url',
                     'url': '/web/content/%s?download=false' % attachment.id,
@@ -359,93 +373,73 @@ class AccountMove(models.Model):
         
         
     def verificar_comunicacion(self):
-        """Mostrar siempre el wizard de contingencia, independientemente de la respuesta de la API."""
-        # Obtener la URL de la API
-        direccion_api = self._get_api_url()
-        url = f"{direccion_api.url}/contingencia/verificar-comunicacion"
-        
+        base_url = self._get_api_url()
+        url = f"{base_url}/contingencia/verificar-comunicacion"
         try:
-            # Hacer la solicitud al endpoint de verificación
             response = requests.get(url)
-            
-            # Verificar si la respuesta contiene JSON
             if response.status_code == 200:
                 try:
                     respuesta_json = response.json()
                     _logger.info("Respuesta de verificación de comunicación: %s", respuesta_json)
-                except json.JSONDecodeError:
-                    _logger.warning("La respuesta de la API no es un JSON válido.")
-                    self.action_mostrar_wizard_contingencia()
 
+                    if respuesta_json.get("mensaje", "").lower() != "conexion exitosa":
+                        return self.action_mostrar_wizard_contingencia()
+
+                except json.JSONDecodeError:
+                    _logger.warning("Respuesta inválida (no JSON), mostrando wizard.")
+                    return self.action_mostrar_wizard_contingencia()
             else:
                 _logger.error("Error al verificar la comunicación. Código: %s. Respuesta: %s", response.status_code, response.text)
-            
+                return self.action_mostrar_wizard_contingencia()
+
         except requests.exceptions.RequestException as e:
             _logger.error("Error al conectar con la API de contingencia: %s", e)
-
-
+            return self.action_mostrar_wizard_contingencia()
+        
+          
+        
     def action_mostrar_wizard_contingencia(self):
-        """Método que abre el wizard de contingencia."""
         return {
+            'name': 'Confirmar inicio de contingencia',
             'type': 'ir.actions.act_window',
-            'res_model': 'contingencia.wizard',
+            'res_model': 'contingencia.inicio.wizard',
             'view_mode': 'form',
             'target': 'new',
             'context': {
-                'default_pregunta': "¿Desea entrar en modo de contingencia?"
+                'active_id': self.id
             }
         }
-        
-    @api.constrains('invoice_date')
-    def _check_invoice_date(self):
-        bolivia_tz = pytz.timezone('America/La_Paz')
-        for record in self:
-            # Obtener la fecha actual en UTC-4 (Bolivia)
-            bolivia_date_today = fields.Datetime.context_timestamp(self, fields.Datetime.now()).astimezone(bolivia_tz).date()
-            
-            # Comparar la fecha de la factura con la fecha actual en Bolivia
-            if record.invoice_date and record.invoice_date != bolivia_date_today:
-                raise ValidationError("La fecha de factura solo puede ser la fecha actual en UTC-4 (Bolivia).")
-            
+
             
     def action_download_invoice_pdf_true(self):
         """Función para descargar el PDF de la factura desde la API."""
-        if not self.cuf or not self.numero_factura:
+        if not self.l10n_bo_cuf or not self.l10n_bo_invoice_number:
             raise UserError(_("No hay CUF o número de factura disponible para esta factura."))
 
-        # Obtener la URL base de la API desde el campo correcto del objeto direccion_api
-        direccion_api = self._get_api_url()  # Aquí debería obtener el registro de dirección de la API
-        base_url = direccion_api.url if isinstance(direccion_api, str) else str(direccion_api.url)
+        direccion_api = self._get_api_url()  
+        base_url = direccion_api
         
-        # Verificar que la URL tenga un esquema (http o https)
         if not base_url.startswith("http"):
             base_url = "http://" + base_url
 
-        # Completar la URL con la ruta de descarga del PDF
         full_base_url = f"{base_url}/pdf/download"
 
-        # Parámetros que se envían a la API en la URL
         params = {
-            'cufd': self.cuf,
-            'numeroFactura': self.numero_factura
+            'cufd': self.l10n_bo_cuf,
+            'numeroFactura': self.l10n_bo_invoice_number
         }
 
-        # Construir la URL completa para revisión y logging
         full_url = requests.Request('GET', full_base_url, params=params).prepare().url
         _logger.info("URL completa para la descarga del PDF: %s", full_url)
 
         try:
-            # Realizar la solicitud GET con los parámetros en la URL
             response = requests.get(full_url)
 
-            # Verificar si la solicitud fue exitosa
             if response.status_code == 200:
-                # Codificar el contenido binario del PDF a base64
                 pdf_content = base64.b64encode(response.content)
 
-                # Crear adjunto en Odoo y guardar el PDF
                 attachment = self.env['ir.attachment'].create({
-                    'name': 'Factura-%s.pdf' % self.numero_factura,
+                    'name': 'Factura-%s.pdf' % self.l10n_bo_invoice_number,
                     'type': 'binary',
                     'datas': pdf_content,
                     'res_model': 'account.move',
@@ -453,7 +447,6 @@ class AccountMove(models.Model):
                     'mimetype': 'application/pdf',
                 })
 
-                # Retornar la acción para abrir o descargar el PDF en Odoo
                 return {
                     'type': 'ir.actions.act_url',
                     'url': '/web/content/%s?download=true' % attachment.id,
@@ -472,65 +465,65 @@ class AccountMove(models.Model):
                 return {
                     'type': 'ir.actions.act_url',
                     'url': record.url,
-                    'target': 'new',  # Esto abrirá la URL en una nueva pestaña
+                    'target': 'new', 
                 }
             else:
                 raise UserError("No hay una URL definida para este registro.")
-            
-    def finalizar_contingencia(self):
-        """Método para finalizar el modo de contingencia usando el idEvento del punto de venta."""
-        
-        # Buscar el punto de venta principal
-        punto_venta_principal = self.env['l10n_bo_bill.punto_venta'].search([('punto_venta_principal', '=', True)], limit=1)
-        if not punto_venta_principal:
-            raise UserError(_("No se encontró un Punto de Venta principal configurado."))
-
-        # Obtener el idEvento del punto de venta
-        id_evento = punto_venta_principal.id_evento
-        if not id_evento:
-            raise UserError(_("No hay un idEvento registrado para el Punto de Venta en contingencia."))
-
-        api_url = f"{self._get_api_url2()}/contingencia/registrar-fin-evento/{id_evento}"
-        
-        # Registrar la URL en los logs para verificar
-        _logger.info("URL completa para finalizar contingencia: %s", api_url)
-        
-        
-        try:
-            # Enviar la solicitud a la API para finalizar el evento de contingencia
-            response = requests.post(api_url)
-            response.raise_for_status()  # Verifica si hubo un error en la solicitud
-
-            # Manejar la respuesta de la API
-            if response.status_code == 200:
-                respuesta_json = response.json()
-                _logger.info("Respuesta de finalizar contingencia: %s", respuesta_json)
-
-                # Desactivar el modo de contingencia en el punto de venta y en la factura
-                punto_venta_principal.write({'contingencia': False})
-                self.write({'contingencia': False})
-
-                # Registrar un mensaje en el chatter
-                mensaje = respuesta_json.get("mensaje", "Contingencia finalizada correctamente.")
-                self.message_post(body=_(f"{mensaje}. idEvento: {id_evento}"))
-
-            else:
-                raise UserError(_("Error al finalizar la contingencia: %s" % response.text))
-
-        except requests.exceptions.RequestException as e:
-            _logger.error("Error al conectar con la API: %s", e)
-            raise UserError(_("Error al conectar con la API: %s" % e))
-        
-    def _get_api_url2(self):
-        """Función para obtener la dirección de la API activa"""
+    
+    
+    def fin_de_contingencia(self):
+        _logger.info("Iniciando proceso para finalizar la contingencia.")
         direccion_api = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)], limit=1)
 
-        if not direccion_api:
-            raise UserError(_("No se encontró una configuración de la API activa."))
+        if not direccion_api or not direccion_api.contingencia:
+            raise UserError("No hay contingencia activa registrada.")
 
-        # Asegurarse de que la URL tenga esquema (http o https)
-        url = direccion_api.url
-        if not url.startswith(("http://", "https://")):
-            url = "http://" + url
+        evento_id = direccion_api.evento_id
+        if not evento_id:
+            raise UserError("No se encontró un ID de evento para finalizar la contingencia.")
 
-        return url
+        api_url = self._get_api_url()
+        url = f"{api_url}/contingencia/registrar-fin-evento/{evento_id}"
+
+        _logger.info(f"Enviando solicitud para finalizar contingencia a: {url}")
+
+        try:
+            response = requests.post(url, timeout=60)
+            response.raise_for_status()
+            data = response.json()
+            _logger.info(f"Respuesta finalización contingencia: {data}")
+
+            # Validar mensaje
+            mensaje = data.get("mensaje", "").lower()
+            if "evento registrado con exito" not in mensaje:
+                _logger.warning(f"La API no confirmó el final de la contingencia: {data}")
+                raise UserError(f"No se confirmó la finalización de la contingencia: {data}")
+
+            # Limpiar estado de contingencia
+            direccion_api.write({
+                'contingencia': False,
+                'evento_id': None
+            })
+            _logger.info("✅ Contingencia desactivada correctamente.")
+
+            #Emitir paquete
+            emitir_url = f"{api_url}/factura/emitir-paquete/1/1/{evento_id}"
+            _logger.info(f"Emitiendo paquete tras finalizar contingencia: {emitir_url}")
+            emitir_response = requests.post(emitir_url, timeout=60)
+            emitir_response.raise_for_status()
+            emitir_data = emitir_response.json()
+            _logger.info(f"Respuesta de emisión de paquete: {emitir_data}")
+
+        except requests.exceptions.RequestException as e:
+            _logger.error(f"Error al finalizar contingencia o emitir paquete: {e}")
+            raise UserError(f"No se pudo finalizar la contingencia ni emitir el paquete:\n{e}")
+        
+    @api.model
+    def finalizar_contingencia_automatica(self):
+        """Finaliza automáticamente la contingencia si sigue activa"""
+        direccion_api = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)], limit=1)
+        if direccion_api and direccion_api.contingencia:
+            _logger.info("Finalizando contingencia automáticamente (por cron)")
+            return self.env['account.move'].fin_de_contingencia()
+        _logger.info("No hay contingencia activa, no se realiza acción.")
+        return True

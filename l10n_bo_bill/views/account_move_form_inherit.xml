@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="account_move_bo_edi_form" model="ir.ui.view">
+        <field name="model">account.move</field>
+        <field name="name">account.move.bo.edi.form</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//header//button[@name='button_draft']" position="replace">
+                <button name="button_draft" string="Reset to Draft" type="object"
+                        confirm="Está apunto de restablecer a borrador, una vez hecho esto, si emite nuevamente la factura se generará una nueva entrada en SIN, desea continuar?"
+                        groups="account.group_account_invoice"
+                        invisible="not show_reset_to_draft_button"/>
+            </xpath>
+            <xpath expr="//header//button[@name='action_post']" position="attributes">
+                <attribute name="invisible">move_type == 'out_invoice'</attribute>
+            </xpath>
+
+            <xpath expr="//header" position="inside">
+                <field name="is_cancelled" invisible="1"/>
+                <field name="is_reverted" invisible="1"/>
+                <field name="inv_type" invisible="1"/>
+
+                <button name="action_open_reversal_wizard" type="object" string="Revertir Factura"
+                        class="btn-primary" invisible="state != 'posted'"/>
+                <button name="action_download_invoice_pdf_true" type="object" string="Descargar PDF"
+                        class="btn-primary" invisible="state != 'posted'"/>
+                <button name="action_invoice_preview" type="object" string="Vista previa"
+                        class="btn-primary" invisible="state != 'posted'"/>
+                <button name="envio_sfv" context="{'check_inv': 1}" type="object" string="ENVIO IMPUESTOS"
+                        class="btn-primary" invisible="l10n_bo_cuf != False"/>
+                <button name="revertir_anulacion" type="object" string="Revertir Anulación"
+                        class="btn-primary" invisible="not is_cancelled"/>
+                <button name="abrir_url" type="object" string="Ver en Impuestos"
+                        class="btn-primary" invisible="state != 'posted'"/>
+                <button name="fin_de_contingencia" type="object" string="Fin Contingencia"
+                        class="btn-primary"
+                        invisible="state != 'posted' or not mostrar_boton_fin_contingencia"/>
+            </xpath>
+
+            <xpath expr="//sheet//group[1]//group[2]//div[@name='journal_div']" position="after">
+                <field name="invoice_mails" invisible="1"/>
+                <field name="mostrar_boton_fin_contingencia" invisible="1"/>
+                <field name="invoice_mails" context="{'search_by_code': True}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='payment_reference']" position="after">
+                <field name="payment_method_code"/>
+            </xpath>
+
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="BO Informacion">
+                    <group>
+                        <field name="l10n_bo_cuf"/>
+                        <field name="l10n_bo_invoice_number"/>
+                        <field name="url"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account_move_bo_edi_in_tree" model="ir.ui.view">
+        <field name="name">account.move.bo.edi.in.list</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_in_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list[1]/field[@name='invoice_partner_display_name']" position="after">
+                <field name="l10n_bo_invoice_number"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account_move_bo_edi_tree" model="ir.ui.view">
+        <field name="name">account.move.bo.edi.out.list</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_out_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list[1]/field[@name='invoice_partner_display_name'][2]" position="after">
+                <field name="l10n_bo_invoice_number"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_move_form_inherit_cancelled_ribbon" model="ir.ui.view">
+        <field name="name">account.move.form.cancelled.ribbon</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <div name="ribbon" invisible="not is_cancelled">
+                    <div class="o_ribbon bg-danger">ANULADA</div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_move_form_inherit_reverted_ribbon" model="ir.ui.view">
+        <field name="name">account.move.form.reverted.ribbon</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <div name="ribbon" invisible="not is_reverted">
+                    <div class="o_ribbon bg-success">REVERTIDA</div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
