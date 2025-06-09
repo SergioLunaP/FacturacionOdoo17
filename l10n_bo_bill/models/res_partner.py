@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import requests
 import logging
@@ -54,9 +54,16 @@ class ResPartner(models.Model):
     def create(self, vals):
         record = super(ResPartner, self).create(vals)
 
-        # Validación de campos necesarios
-        if not vals.get("name") or not vals.get("vat") or not vals.get("codigo_cliente") or not vals.get("email") or not vals.get("tipo_documento_identidad"):
-            raise UserError("Faltan datos requeridos para enviar el cliente a la API.")
+        required_fields = ["name", "vat", "codigo_cliente", "email", "tipo_documento_identidad"]
+        missing_fields = [
+            self._fields[field].string for field in required_fields if not vals.get(field)
+        ]
+
+        if missing_fields:
+            raise UserError(
+                _("Faltan los siguientes campos requeridos para enviar el cliente a la API:\n- %s") %
+                "\n- ".join(missing_fields)
+            )
 
         payload = {
             "nombreRazonSocial": vals.get("name"),
@@ -77,14 +84,11 @@ class ResPartner(models.Model):
 
             if "id" in response_data:
                 external_id = response_data["id"]
-
-                # Actualizamos por SQL como en tu ejemplo
-                query = """
+                self.env.cr.execute("""
                     UPDATE res_partner
                     SET external_id = %s
                     WHERE id = %s;
-                """
-                self.env.cr.execute(query, (external_id, record.id))
+                """, (external_id, record.id))
             else:
                 _logger.error("La API no devolvió un ID válido para el cliente.")
 
@@ -93,6 +97,7 @@ class ResPartner(models.Model):
             raise UserError(f"No se pudo sincronizar el cliente con la API: {e}")
 
         return record
+
     
     def write(self, vals):
         result = super(ResPartner, self).write(vals)

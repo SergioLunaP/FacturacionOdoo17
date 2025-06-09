@@ -88,8 +88,15 @@ class ProductTemplate(models.Model):
         record = super(ProductTemplate, self).create(vals)
 
         required_fields = ["default_code", "name", "list_price", "unit_measure_code", "product_code"]
-        if not all(vals.get(field) for field in required_fields):
-            raise UserError("Faltan datos requeridos para enviar el producto a la API.")
+        missing_fields = [
+            self._fields[field].string for field in required_fields if not vals.get(field)
+        ]
+
+        if missing_fields:
+            raise UserError(
+                _("Faltan los siguientes campos requeridos para enviar el producto a la API:\n- %s") %
+                "\n- ".join(missing_fields)
+            )
 
         payload = {
             "codigo": vals.get("default_code"),
@@ -123,6 +130,7 @@ class ProductTemplate(models.Model):
             raise UserError(f"Error al enviar producto a la API: {e}")
 
         return record
+
     
     def write(self, vals):
         result = super(ProductTemplate, self).write(vals)
