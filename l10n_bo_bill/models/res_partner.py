@@ -15,7 +15,6 @@ class ResPartner(models.Model):
     tipo_documento_identidad = fields.Selection(
         selection='_get_tipo_documento_identidad',
         string="Tipo de Documento",
-        required=True,
         help="Selecciona el tipo de documento desde la API"
     )
 
@@ -54,20 +53,9 @@ class ResPartner(models.Model):
     def create(self, vals):
         record = super(ResPartner, self).create(vals)
 
-        required_fields = ["name", "vat", "codigo_cliente", "email", "tipo_documento_identidad"]
-        missing_fields = [
-            self._fields[field].string for field in required_fields if not vals.get(field)
-        ]
-
-        if missing_fields:
-            raise UserError(
-                _("Faltan los siguientes campos requeridos para enviar el cliente a la API:\n- %s") %
-                "\n- ".join(missing_fields)
-            )
-
         payload = {
             "nombreRazonSocial": vals.get("name"),
-            "codigoTipoDocumentoIdentidad": int(vals.get("tipo_documento_identidad")),
+            "codigoTipoDocumentoIdentidad": int(vals.get("tipo_documento_identidad")) if vals.get("tipo_documento_identidad") else None,
             "numeroDocumento": vals.get("vat"),
             "complemento": vals.get("complemento", ""),
             "codigoCliente": vals.get("codigo_cliente"),
@@ -108,7 +96,7 @@ class ResPartner(models.Model):
 
             payload = {
                 "nombreRazonSocial": vals.get("name", record.name),
-                "codigoTipoDocumentoIdentidad": int(vals.get("tipo_documento_identidad", record.tipo_documento_identidad)),
+                "codigoTipoDocumentoIdentidad": int(vals.get("tipo_documento_identidad", record.tipo_documento_identidad)) if vals.get("tipo_documento_identidad", record.tipo_documento_identidad) else None,
                 "numeroDocumento": vals.get("vat", record.vat),
                 "complemento": vals.get("complemento", record.complemento or ""),
                 "codigoCliente": vals.get("codigo_cliente", record.codigo_cliente),

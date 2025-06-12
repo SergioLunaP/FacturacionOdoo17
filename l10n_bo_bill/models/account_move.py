@@ -173,7 +173,7 @@ class AccountMove(models.Model):
                     "montoDescuento": "0.0",
                     "precio": str(line.price_unit)
                 })
-                
+
             direccion_api = self.env['l10n_bo_bill.direccion_api'].search([('activo', '=', True)], limit=1)
 
             payload = {
@@ -181,7 +181,7 @@ class AccountMove(models.Model):
                 "idPuntoVenta": 1,
                 "idCliente": partner.external_id,
                 "nitInvalido": True,
-                "codigoMetodoPago": int(factura.payment_method_code),
+                "codigoMetodoPago": int(factura.payment_method_code) if factura.payment_method_code else 1,
                 "activo": not direccion_api.contingencia if direccion_api else True,
                 "masivo": False,
                 "detalle": detalle,
@@ -228,9 +228,15 @@ class AccountMove(models.Model):
                 factura.action_post()
 
             except requests.exceptions.HTTPError as e:
-                content = e.response.text if e.response else "Sin respuesta de la API"
-                _logger.error(f"Error HTTP al emitir factura {factura.name}: {e} - Respuesta: {content}")
-                raise UserError(f"Error HTTP {e.response.status_code}:\n{content}")
+                status = e.response.status_code if e.response else "Sin código"
+                try:
+                    error_data = e.response.json()
+                    error_msg = json.dumps(error_data, indent=2, ensure_ascii=False)
+                except Exception:
+                    error_msg = e.response.text if e.response else "Sin respuesta detallada de la API"
+
+                _logger.error(f"Error HTTP al emitir factura {factura.name}: {status} - {error_msg}")
+                raise UserError(f"Error HTTP {status}:\n{error_msg}")
 
             except requests.exceptions.RequestException as e:
                 _logger.error(f"Error de conexión al emitir factura {factura.name}: {e}")

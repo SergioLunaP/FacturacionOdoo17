@@ -9,14 +9,17 @@
     'depends': ['base', 'web' ,'contacts', 'stock', 'account'],
     'data': [
         'security/ir.model.access.csv',
-        'views/direccion_api_views.xml',  
+        'views/direccion_api_views.xml', 
         
+        'views/cufd_views.xml', 
         'wizards/account_move_reversal_view_inherit.xml',
         'wizards/contingencia_inicio_wizard.xml',
         
         'views/res_partner_view.xml',
         'views/product_template_form_inherit.xml',
-        'views/account_move_form_inherit.xml'
+        'views/account_move_form_inherit.xml',
+        
+        'data/cufd_cron.xml',
         
     ],
     

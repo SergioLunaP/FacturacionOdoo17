@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_direccion_api,l10n_bo_bill.direccion_api,model_l10n_bo_bill_direccion_api,,1,1,1,1
 access_contingencia_inicio_wizard_user,access_contingencia_inicio_wizard_user,model_contingencia_inicio_wizard,base.group_user,1,1,1,1
+access_cufd_user,l10n_bo_bill.cufd,model_l10n_bo_bill_cufd,base.group_user,1,1,1,1

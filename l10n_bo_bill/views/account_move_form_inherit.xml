@@ -109,4 +109,11 @@
         </field>
     </record>
 
+    <menuitem id="menu_cufd_configuracion"
+          name="CUFD"
+          parent="account.menu_finance_configuration"
+          action="action_cufd_configuracion"
+          sequence="60"/>
+
+
 </odoo>

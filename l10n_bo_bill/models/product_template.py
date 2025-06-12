@@ -32,6 +32,12 @@ class ProductTemplate(models.Model):
         api_url = self._get_api_url()
         url = f"{api_url}/productos"
 
+        # Lista de códigos permitidos como string (para coincidir con la conversión que haces)
+        allowed_codes = {
+            "87290", "45220", "61284", "61285", "61289", "612849", "612859", "612899",
+            "872909", "83141", "83143", "831419", "831439"
+        }
+
         try:
             response = requests.get(url, timeout=10)
             response.raise_for_status()
@@ -44,7 +50,7 @@ class ProductTemplate(models.Model):
             product_list = []
             for p in productos:
                 codigo = str(p.get("codigoProducto"))
-                if codigo and codigo not in seen:
+                if codigo in allowed_codes and codigo not in seen:
                     seen.add(codigo)
                     descripcion = p.get('descripcionProducto', 'Sin descripción')
                     product_list.append((codigo, f"{codigo} - {descripcion}"))
@@ -54,6 +60,7 @@ class ProductTemplate(models.Model):
         except requests.exceptions.RequestException as e:
             _logger.error(f"Error al obtener productos de la API: {e}")
             return []
+
 
     @api.model
     def _get_unit_measures(self):

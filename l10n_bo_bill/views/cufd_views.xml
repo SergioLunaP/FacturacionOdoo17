@@ -1,0 +1,57 @@
+<odoo>
+  <!-- Acción -->
+  <record id="action_cufd_configuracion" model="ir.actions.act_window">
+    <field name="name">CUFD</field>
+    <field name="res_model">l10n_bo_bill.cufd</field>
+    <field name="view_mode">list,form</field>
+    <field name="context">{}</field>
+  </record>
+
+  <!-- Menú CUFD bajo configuración contable -->
+  <menuitem id="menu_cufd_configuracion"
+            name="CUFD"
+            parent="account.menu_finance_configuration"
+            action="action_cufd_configuracion"
+            sequence="51"/>
+
+  <!-- Vista lista (reemplaza tree por list) -->
+  <record id="view_list_cufd" model="ir.ui.view">
+    <field name="name">l10n_bo_bill.cufd.list</field>
+    <field name="model">l10n_bo_bill.cufd</field>
+    <field name="arch" type="xml">
+      <list string="CUFDs">
+        <field name="codigo"/>
+        <field name="codigo_control"/>
+        <field name="fecha_inicio"/>
+        <field name="fecha_vigencia"/>
+        <field name="vigente"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- Vista formulario con botón -->
+  <record id="view_form_cufd" model="ir.ui.view">
+    <field name="name">l10n_bo_bill.cufd.form</field>
+    <field name="model">l10n_bo_bill.cufd</field>
+    <field name="arch" type="xml">
+      <form string="CUFD">
+        <header>
+          <button name="obtener_cufd"
+                  type="object"
+                  string="Obtener CUFD"
+                  class="btn-primary"
+                  icon="fa-refresh"/>
+        </header>
+        <sheet>
+          <group>
+            <field name="codigo"/>
+            <field name="codigo_control"/>
+            <field name="fecha_inicio"/>
+            <field name="fecha_vigencia"/>
+            <field name="vigente"/>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+</odoo>
